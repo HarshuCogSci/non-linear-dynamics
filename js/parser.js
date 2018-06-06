@@ -21,6 +21,7 @@ function recursion(obj){
     if(obj.fn == 'subtract'){ return 'numeric.sub(' +recursion(obj.args[0])+ ',' +recursion(obj.args[1])+ ')' }; // math.add
     if(obj.fn == "unaryMinus"){ return 'numeric.mul(-1, ' +recursion(obj.args[0])+ ')' };
     if(obj.fn == "unaryPlus"){ return 'numeric.mul(1, ' +recursion(obj.args[0])+ ')' };
+    if(obj.fn == "sqrt"){ return 'numeric.sqrt(' +recursion(obj.args[0])+ ')' };
     if(obj.fn == 'pow'){ return 'numeric.pow(' +recursion(obj.args[0])+ ',' +recursion(obj.args[1])+ ')' }; // math.add
 
   }
