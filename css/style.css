@@ -17,6 +17,13 @@ body{
 }
 
 /******************************************************************************/
+/* Graph */
+
+.blue_path{ stroke: steelblue; fill: none; stroke-width: 2; }
+.stable{ fill: orange; stroke: orange; stroke-width: 2; }
+.unstable{ fill: white; stroke: orange; stroke-width: 2; }
+
+/******************************************************************************/
 /* Slider Text */
 
 .text_align{
