@@ -1,0 +1,161 @@
+<html lang="en">
+<head>
+  <title>Strotgatz</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0"/>
+
+  <meta name="description" content="geometry, gestures">
+  <meta name="keywords" content="geometry, gestures">
+  <meta name="author" content="Learning Sciences Research Lab, Homi Bhabha Centre for Science Education, http://lsr.hbce.tifr.res.in, http://hbcse.tifr.res.in">
+</head>
+
+<!--------------------------------------------------------->
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+<script src="https://d3js.org/d3-hsv.v0.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.16.3/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+<script type="text/x-mathjax-config"> MathJax.Hub.Config({ extensions: ["tex2jax.js"], jax: ["input/TeX","output/HTML-CSS"], tex2jax: { inlineMath: [["\\(","\\)"]] } }); </script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<link rel="stylesheet" href="stylesheet.css">
+
+<body>
+  <div class='container-fluid'>
+
+  <div class='text-center mt-3'>
+    <h5 class='pb-2'>Visualizing Non-linear Systems</h5>
+    <div id='func_latex' class='pt-2'></div>
+  </div>
+
+  <div class='row'>
+    <div class='col-sm-6'> <div id='div_1_1'></div> </div>
+    <div class='col-sm-6' id='div_1_2'></div>
+  </div>
+
+  <div class='row'>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-header">Settings</div>
+        <div class="card-body">
+          <div class='mt-3'> <input type="range" id="x_initial_slider"></input> <span class="text_align range-slider__value" id="x_initial_text"></span> </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+
+<script>
+
+/****************************************************************************************/
+// Function
+
+function vel_fun(x, t){
+  if(typeof(x) == 'number'){ return Math.sin(x) }
+  return numeric.sin(x)
+}
+
+// d3.select('#func_latex').text('\\( \\frac{dx}{dt} = sin(x) \\)').styles({ 'font-size': '1em' });
+d3.select('#func_latex').text('\\( \\dot{x} = sin(x) \\)').styles({ 'font-size': '1.2em' });
+MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+
+var x_initial = 1, x_array = [], t_array = [];
+var timeSpan = 50, h = 0.01;
+
+var num = 200, xRange = 5;
+compute_trajectory();
+plot_1_1(); plot_1_2();
+changeText();
+
+d3.select('#x_initial_slider').attrs({ value: x_initial, min: -xRange, max: xRange, step: 0.1 })
+  .on('input', function(){
+    x_initial = parseFloat(this.value);
+    compute_trajectory();
+    plot_1_1(); plot_1_2();
+    changeText();
+  })
+
+function changeText(){
+  d3.select('#x_initial_text').html('x' + "<span style='vertical-align: -webkit-baseline-middle; font-size: 0.8em;'>0</span>" + ' = ' + x_initial);
+}
+
+/****************************************************************************************/
+// Compuation
+
+function compute_trajectory(){
+  x_array = []; t_array = [];
+  x_array[0] = x_initial; t_array[0] = 0;
+
+  for(var i = 0; i < timeSpan/h; i++){
+    x = x_array[i]; t = t_array[i];
+
+    k1 = vel_fun(x, t);
+    k2 = vel_fun(x + 0.5*h*k1, t + 0.5*h);
+    k3 = vel_fun(x + 0.5*h*k2, t + 0.5*h);
+    k4 = vel_fun(x + h*k3, t + h);
+
+    x_array[i+1] = x_array[i] + (1/6)*h*(k1 + 2*k2 + 2*k3 + k4);
+    t_array[i+1] = t_array[i] + h;
+  }
+
+}
+
+/****************************************************************************************/
+// Graph
+
+function plot_1_1(){
+  var tempScale = d3.scaleLinear().domain([0, num-1]).range([-xRange, xRange]);
+  var tempArray = d3.range(num).map((d, i) => { return tempScale(i) });
+
+  var data = {
+    x: tempArray, y: vel_fun(tempArray, null),
+    type: 'lines', name: 'curve'
+  }
+
+  var point = {
+    x: [x_initial], y: [vel_fun(x_initial, null)],
+    type: 'scatter', mode: 'markers', name: 'x' + "<span style='vertical-align: -webkit-baseline-middle; font-size: 0.8em; dominant-baseline: mathematical;'>0</span>"
+  }
+
+  var layout = {
+    title: 'Phase plot',
+    xaxis: { title: 'position' + ' →', fixedrange: true },
+    yaxis: { title: 'velocity' + ' →', fixedrange: true },
+  };
+
+  Plotly.newPlot('div_1_1', [data, point], layout);
+  var symbol = $('#div_1_1 .modebar-group');
+  $(symbol[ symbol.length-1 ]).css({ "visibility": "hidden" });
+}
+
+function plot_1_2(){
+  var data = {
+    x: t_array, y: x_array,
+    type: 'lines', name: ''
+  }
+
+  var layout = {
+    title: '',
+    xaxis: { title: 'time' + ' →', fixedrange: true },
+    yaxis: { title: 'position' + ' →', range: [-xRange, xRange], fixedrange: true },
+  };
+
+  Plotly.newPlot('div_1_2', [data], layout);
+  var symbol = $('#div_1_2 .modebar-group');
+  $(symbol[ symbol.length-1 ]).css({ "visibility": "hidden" });
+}
+
+</script>
+</html>
