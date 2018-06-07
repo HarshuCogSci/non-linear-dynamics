@@ -173,38 +173,36 @@ TranscriticalModel.prototype.updateSliders = function(){
 
 /******************************************************************************/
 
-// var colors = ['#DB4052', '#2CA02C', '#1F77B4', '#FF7F0E'];
 var colors = ['#DB4052', '#FF7F0E', '#1F77B4', '#2CA02C'];
 
-TranscriticalModel.prototype.draw = function(){
+TranscriticalModel.prototype.createGraph = function(){
 
   /****************************************************************************/
   /* Chart 1 */
   var locus = {
     x: this.x,
-    y: this.dx_by_dt_list,
+    y: [],
     mode: 'lines', name: 'locus',
     line: { color: colors[1] }
   };
 
   var roots_stable = {
-    x: this.roots_stability.map((d, i) => { if(d == 'stable'){ return this.roots[i] } }),
-    y: this.roots_stability.map((d, i) => { if(d == 'stable'){ return 0 } }),
+    x: [],
+    y: [],
     mode: 'markers', name: 'Stable',
     marker: { color: colors[3] }
   };
 
   var roots_unstable = {
-    x: this.roots_stability.map((d, i) => { if(d == 'unstable'){ return this.roots[i] } }),
-    y: this.roots_stability.map((d, i) => { if(d == 'unstable'){ return 0 } }),
+    x: [],
+    y: [],
     mode: 'markers', name: 'Unstable',
     marker: { color: colors[0] },
   };
 
-  var r = this.r.value, x = this.x0.value;
   var initial_point = {
-    x: [this.x0.value],
-    y: [this.exp.mathjs.eval({ x: x, r: r })],
+    x: [],
+    y: [],
     mode: 'markers', name: 'Initial Value',
     marker: { color: colors[2] }
   };
@@ -217,15 +215,15 @@ TranscriticalModel.prototype.draw = function(){
   /****************************************************************************/
   /* Chart 2 */
   var trace4 = {
-    x: this.t_list,
-    y: this.x_list,
+    x: [],
+    y: [],
     mode: 'lines', name: 'Trajectory',
     line: { color: colors[2] }
   }
 
   var trace4_a = {
-    x: [0],
-    y: [this.x0.value],
+    x: [],
+    y: [],
     mode: 'markers', name: 'Initial Value',
     marker: { color: colors[2] }
   }
@@ -251,15 +249,15 @@ TranscriticalModel.prototype.draw = function(){
   };
 
   var current_stable_nodes = {
-    x: this.roots_stability.map((d,i) => { if(d == 'stable'){ return this.r.value } }),
-    y: this.roots_stability.map((d,i) => { if(d == 'stable'){ return this.roots[i] } }),
+    x: [],
+    y: [],
     mode: 'markers', name: 'Stable',
     marker: { color: colors[3] }
   };
 
   var current_unstable_nodes = {
-    x: this.roots_stability.map((d,i) => { if(d == 'unstable'){ return this.r.value } }),
-    y: this.roots_stability.map((d,i) => { if(d == 'unstable'){ return this.roots[i] } }),
+    x: [],
+    y: [],
     mode: 'markers', name: 'Unstable',
     marker: { color: colors[0] }
   };
@@ -271,3 +269,54 @@ TranscriticalModel.prototype.draw = function(){
 }
 
 /******************************************************************************/
+
+TranscriticalModel.prototype.updateGraph = function(){
+
+  /****************************************************************************/
+  // Phase plot
+
+  var chart_1 = document.getElementById('chart_1').data;
+  chart_1[0].y = this.dx_by_dt_list;
+
+  // Stable nodes
+  chart_1[1].x = this.roots_stability.map((d, i) => { if(d == 'stable'){ return this.roots[i] } });
+  chart_1[1].y = this.roots_stability.map((d, i) => { if(d == 'stable'){ return 0 } });
+
+  // Unstable Nodes
+  chart_1[2].x = this.roots_stability.map((d, i) => { if(d == 'unstable'){ return this.roots[i] } });
+  chart_1[2].y = this.roots_stability.map((d, i) => { if(d == 'unstable'){ return 0 } });
+
+  // Initial Point
+  var r = this.r.value, x = this.x0.value;
+  chart_1[3].x = [this.x0.value];
+  chart_1[3].y = [this.exp.mathjs.eval({ x: x, r: r })];
+
+  Plotly.redraw('chart_1');
+
+  /****************************************************************************/
+  // Trajectory plot
+
+  var chart_2 = document.getElementById('chart_2').data;
+
+  chart_2[0].x = this.t_list;
+  chart_2[0].y = this.x_list;
+
+  chart_2[1].x = [0];
+  chart_2[1].y = [this.x0.value];
+
+  Plotly.redraw('chart_2');
+
+  /****************************************************************************/
+  // Roots plot
+
+  var chart_3 = document.getElementById('chart_3').data;
+
+  chart_3[2].x = this.roots_stability.map((d,i) => { if(d == 'stable'){ return this.r.value } });
+  chart_3[2].y = this.roots_stability.map((d,i) => { if(d == 'stable'){ return this.roots[i] } });
+
+  chart_3[3].x = this.roots_stability.map((d,i) => { if(d == 'unstable'){ return this.r.value } });
+  chart_3[3].y = this.roots_stability.map((d,i) => { if(d == 'unstable'){ return this.roots[i] } });
+
+  Plotly.redraw('chart_3');
+
+}

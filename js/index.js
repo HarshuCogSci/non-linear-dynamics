@@ -39,6 +39,10 @@ function create(){
   obj.findAllRoots();
 
   update();
+  obj.graph_created = false;
+  obj.createGraph();
+  obj.updateGraph();
+  obj.graph_created = true;
   MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 }
 
@@ -49,7 +53,7 @@ function update(){
   obj.evaluate();
 
   obj.updateSliders();
-  obj.draw();
+  if(obj.graph_created){ obj.updateGraph(); }
 }
 
 /***************************************************************************/
