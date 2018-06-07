@@ -3,20 +3,33 @@
 
 $(document).ready(function(){
   setup();
+  changeSystem_events();
+  create();
 })
 
 var line = d3.line()
     .x(function(d) { return (d.x); })
     .y(function(d) { return (d.y); });
 
-// var model_array = [LogisiticModel, ParabolaModel];
+var obj_array = [];
+var obj = null;
+var obj_index = 2;
 
 /***************************************************************************/
 // Setup function
 
 function setup(){
+  obj_array.push(LogisiticModel);
+  obj_array.push(ParabolaModel);
+  obj_array.push(TranscriticalModel);
+}
+
+/***************************************************************************/
+// Create function
+
+function create(){
   // obj = new LogisiticModel();
-  obj = new ParabolaModel();
+  obj = new obj_array[obj_index]();
 
   obj.createSliders();
 
@@ -37,4 +50,14 @@ function update(){
 
   obj.updateSliders();
   obj.draw();
+}
+
+/***************************************************************************/
+// Dropdown
+
+function changeSystem_events(){
+  d3.selectAll('.system').on('click', function(){
+    var index = parseInt( d3.select(this).attr('data') );
+    if(index != obj_index){ obj_index = index; create(); }
+  })
 }

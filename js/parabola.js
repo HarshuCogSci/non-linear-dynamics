@@ -3,7 +3,7 @@
 
 function ParabolaModel(){
   this.exp = 'x^2 + r';
-  this.heading = 'Parabola Model';
+  this.heading = 'Saddle Node Bifurcation Model';
 
   this.r = { min: -5, max: 1, step: 0.1, value: -1 };
   this.x0 = { min: -5, max: 5, step: 0.1, value: 2 };

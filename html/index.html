@@ -22,13 +22,15 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/4.4.1/math.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+<!-- <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script> -->
+ <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_SVG"></script>
 
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <script src="../js/parser.js"></script>
 <script src="../js/logisticModel.js"></script>
 <script src="../js/parabola.js"></script>
+<script src="../js/transcritical.js"></script>
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 <link rel="stylesheet" href="../css/style.css">
@@ -51,6 +53,16 @@
           <div class='card-body'>
             <div class='pt-2 pb-4' id="equation_pane"></div>
             <div id='sliders_div_1'></div>
+            <!-- Dropdown -->
+            <div class='dropdown pt-4'>
+              <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Select the system </button>
+               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                 <a class="dropdown-item system" data="0" href="#">Logistic Model</a>
+                 <a class="dropdown-item system" data="1" href="#">Saddle Node Bifurcation Model</a>
+                 <a class="dropdown-item system" data="2" href="#">Transcritical-bifurcation Model</a>
+               </div>
+            </div>
+            <!-- Dropdown -->
           </div>
         </div>
       </div>
