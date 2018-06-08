@@ -13,7 +13,22 @@ var line = d3.line()
 
 var obj_array = [];
 var obj = null;
-var obj_index = 2;
+var obj_index = 3;
+
+var threshold = 0.00001;
+function round(d){
+  if(typeof(d) != 'number'){
+    if(math.abs(d.im) < threshold){ if(math.abs(d.re) < threshold){ return 0 } else { return d.re } } else { return d }
+  }
+  else if(math.abs(d) < threshold){ return 0 } else { return d }
+}
+
+function stability(d){
+  if(d < 0){ return 'stable' }
+  else if(d > 0){ return 'unstable' }
+  else if(d == 0){ return 'neutral' }
+  else { return 'none' }
+}
 
 /***************************************************************************/
 // Setup function
@@ -22,6 +37,7 @@ function setup(){
   obj_array.push(LogisiticModel);
   obj_array.push(ParabolaModel);
   obj_array.push(TranscriticalModel);
+  obj_array.push(PitchforkModel);
 }
 
 /***************************************************************************/
