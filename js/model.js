@@ -9,7 +9,7 @@ function model(){
   this.f = null;
   this.r = { min: -5, max: 5, step: 0.1, value: 1 };
   this.x0 = { min: -5, max: 5, step: 0.1, value: 0.5 };
-  this.x = d3.range(this.x0.min, this.x0.max, this.x0.step);
+  this.x = d3.range(this.x0.min, this.x0.max+this.x0.step, this.x0.step);
 
   this.roots = null;
   this.roots_stability = null;
@@ -195,7 +195,8 @@ model.prototype.updateSliders = function(){
 /******************************************************************************/
 
 // var colors = ['#DB4052', '#FF7F0E', '#1F77B4', '#2CA02C'];
-var colors = { velocity_locus: '#FF7F0E', trajectory: '#1F77B4', stable: '#2CA02C', unstable: '#DB4052' }
+// var colors = { velocity_locus: '#ef8427', trajectory: '#1F77B4', stable: '#2CA02C', unstable: '#DB4052' }
+var colors = { velocity_locus: '#1F77B4', trajectory: '#ef8427', stable: '#2CA02C', unstable: '#DB4052', neutral: '#999' }
 
 model.prototype.createGraph = function(){
 
@@ -213,26 +214,34 @@ model.prototype.createGraph = function(){
     x: [],
     y: [],
     mode: 'markers', name: 'Stable',
-    marker: { color: colors.stable }
+    marker: { color: colors.stable, size: 8 }
   };
 
   var roots_unstable = {
     x: [],
     y: [],
     mode: 'markers', name: 'Unstable',
-    marker: { color: colors.unstable },
+    marker: { color: colors.unstable, size: 8 }
+  };
+
+  var roots_neutral = {
+    x: [],
+    y: [],
+    mode: 'markers', name: 'Neutral',
+    marker: { color: colors.neutral, size: 8 }
   };
 
   var initial_point = {
     x: [],
     y: [],
     mode: 'markers', name: 'Initial Value',
-    marker: { color: colors.trajectory, size: 10 }
+    marker: { color: '#ffffff', line: { color: colors.trajectory, width: 2 } },
   };
 
-  var data = [locus, roots_stable, roots_unstable, initial_point];
+  var data = [locus, roots_stable, roots_unstable, roots_neutral, initial_point];
   var layout = { title: 'Phase Plot', xaxis: { title: 'x →' }, yaxis: { title: 'dx/dt →' } };
   Plotly.newPlot('chart_1', data, layout, { staticPlot: true });
+
 
   /****************************************************************************/
   /* Chart 2 */
@@ -248,7 +257,7 @@ model.prototype.createGraph = function(){
     x: [],
     y: [],
     mode: 'markers', name: 'Initial Value',
-    marker: { color: colors.trajectory }
+    marker: { color: '#ffffff', line: { color: colors.trajectory, width: 2 } },
   }
 
   var data = [trace4, trace4_a];
@@ -260,22 +269,22 @@ model.prototype.createGraph = function(){
 
   var stable_roots_locus = this.roots_array.map((row,i) => {
     return row.map((root,j) => {
-      if(this.roots_stability_array[i][j] == 'stable' && typeof(root) == 'number'){ return root } else { return null }
+      if((this.roots_stability_array[i][j] == 'stable' || this.roots_stability_array[i][j] == 'neutral') && typeof(root) == 'number'){ return root } else { return null }
     })
   })
 
   var unstable_roots_locus = this.roots_array.map((row,i) => {
     return row.map((root,j) => {
-      if(this.roots_stability_array[i][j] == 'unstable' && typeof(root) == 'number'){ return root } else { return null }
+      if((this.roots_stability_array[i][j] == 'unstable' || this.roots_stability_array[i][j] == 'neutral') && typeof(root) == 'number'){ return root } else { return null }
     })
   })
 
-  var stable_traces = stable_roots_locus.map(locus => {
-    return { x: this.r_array, y: locus, mode: 'lines', name: 'Stable', line: { dash: 'solid', color: colors.stable } }
+  var stable_traces = stable_roots_locus.map((locus,i) => {
+    return { x: this.r_array, y: locus, mode: 'lines', name: 'Stable', line: { dash: 'solid', color: colors.stable }, showlegend: i == 0 ? true : false }
   })
 
-  var unstable_traces = unstable_roots_locus.map(locus => {
-    return { x: this.r_array, y: locus, mode: 'lines', name: 'Unstable', line: { dash: 'dot', color: colors.unstable } }
+  var unstable_traces = unstable_roots_locus.map((locus,i) => {
+    return { x: this.r_array, y: locus, mode: 'lines', name: 'Unstable', line: { dash: 'dot', color: colors.unstable }, showlegend: i == 0 ? true : false }
   })
 
   var traces = [];
@@ -286,17 +295,24 @@ model.prototype.createGraph = function(){
     x: [],
     y: [],
     mode: 'markers', name: 'Stable',
-    marker: { color: colors.stable }
+    marker: { color: colors.stable, size: 8 }
   };
 
   var current_unstable_nodes = {
     x: [],
     y: [],
     mode: 'markers', name: 'Unstable',
-    marker: { color: colors.unstable }
+    marker: { color: colors.unstable, size: 8 }
   };
 
-  traces.push(current_stable_nodes, current_unstable_nodes);
+  var current_neutral_nodes = {
+    x: [],
+    y: [],
+    mode: 'markers', name: 'Neutral',
+    marker: { color: colors.neutral, size: 8 }
+  };
+
+  traces.push(current_stable_nodes, current_unstable_nodes, current_neutral_nodes);
 
   var layout = { title: 'Nodes', xaxis: { title: 'r →', zeroline: true }, yaxis: { title: 'Roots →', zeroline: false } };
   Plotly.newPlot('chart_3', traces, layout, { staticPlot: true });
@@ -321,10 +337,14 @@ model.prototype.updateGraph = function(){
   chart_1[2].x = this.roots_stability.map((d, i) => { if(d == 'unstable'){ return this.roots[i] } });
   chart_1[2].y = this.roots_stability.map((d, i) => { if(d == 'unstable'){ return 0 } });
 
+  // Neutral Nodes
+  chart_1[3].x = this.roots_stability.map((d, i) => { if(d == 'neutral'){ return this.roots[i] } });
+  chart_1[3].y = this.roots_stability.map((d, i) => { if(d == 'neutral'){ return 0 } });
+
   // Initial Point
   var r = this.r.value, x = this.x0.value;
-  chart_1[3].x = [this.x0.value];
-  chart_1[3].y = [this.exp.mathjs.eval({ x: x, r: r })];
+  chart_1[4].x = [this.x0.value];
+  chart_1[4].y = [this.exp.mathjs.eval({ x: x, r: r })];
 
   Plotly.redraw('chart_1');
 
@@ -352,6 +372,9 @@ model.prototype.updateGraph = function(){
 
   chart_3[index+1].x = this.roots_stability.map((d,i) => { if(d == 'unstable'){ return this.r.value } });
   chart_3[index+1].y = this.roots_stability.map((d,i) => { if(d == 'unstable'){ return this.roots[i] } });
+
+  chart_3[index+2].x = this.roots_stability.map((d,i) => { if(d == 'neutral'){ return this.r.value } });
+  chart_3[index+2].y = this.roots_stability.map((d,i) => { if(d == 'neutral'){ return this.roots[i] } });
 
   Plotly.redraw('chart_3');
 
