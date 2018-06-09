@@ -11,8 +11,11 @@ function recursion(obj){
   if(obj.content != undefined){ return '(' +recursion(obj.content)+ ')' };
   if(obj.fn == undefined){ return obj.value != undefined ? obj.value : obj.name };
   if(obj.fn.name == 'sin'){ return 'numeric.sin(' +recursion(obj.args[0])+ ')' }; // math.sin
+  if(obj.fn.name == 'sinh'){ return 'numeric.sinh(' +recursion(obj.args[0])+ ')' }; // math.sinh
   if(obj.fn.name == 'cos'){ return 'numeric.cos(' +recursion(obj.args[0])+ ')' }; // math.cos
+  if(obj.fn.name == 'cosh'){ return 'numeric.cosh(' +recursion(obj.args[0])+ ')' }; // math.cosh
   if(obj.fn.name == 'tan'){ return 'numeric.tan(' +recursion(obj.args[0])+ ')' }; // math.tan
+  if(obj.fn.name == 'tanh'){ return 'numeric.tanh(' +recursion(obj.args[0])+ ')' }; // math.tanh
   if(obj.fn != undefined){
 
     if(obj.fn == 'multiply'){ return 'numeric.mul(' +recursion(obj.args[0])+ ',' +recursion(obj.args[1])+ ')' }; // math.mutiply

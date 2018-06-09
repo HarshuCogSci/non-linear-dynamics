@@ -1,17 +1,14 @@
 /******************************************************************************/
-/* Logisitc Model */
+/* Sub-critical Pitchfork Bifurcation Model */
 
-function PitchforkModel(){
+function model(){
   this.exp = {}; this.roots_exp = {}; this.diff_exp = {};
-  this.exp.string = 'r*x - x^3';
-  this.heading = 'Pitchfork-bifurcation Model';
+  this.exp.string = null;
+  this.heading = null;
 
-  this.f = function(x, t){
-    return this.r.value*x - Math.pow(x, 3)
-  }
-
-  this.r = { min: -5, max: 5, step: 0.1, value: -1 };
-  this.x0 = { min: -5, max: 5, step: 0.1, value: 2 };
+  this.f = null;
+  this.r = { min: -5, max: 5, step: 0.1, value: 1 };
+  this.x0 = { min: -5, max: 5, step: 0.1, value: 0.5 };
   this.x = d3.range(this.x0.min, this.x0.max, this.x0.step);
 
   this.roots = null;
@@ -32,7 +29,7 @@ function PitchforkModel(){
 /******************************************************************************/
 /* Parsing the expression */
 
-PitchforkModel.prototype.parse = function(){
+model.prototype.parse = function(){
   this.exp.mathjs = math.parse(this.exp.string);
   this.exp.numericjs = convert_to_numericjs_exp(this.exp.string);
   this.exp.nerdamer = nerdamer(this.exp.string);
@@ -54,7 +51,7 @@ PitchforkModel.prototype.parse = function(){
 /******************************************************************************/
 /* Render the equation in Latex */
 
-PitchforkModel.prototype.renderEquation = function(){
+model.prototype.renderEquation = function(){
   d3.select('#equation_pane').html("\\("+ "\\dot{x}=" +this.exp.latex+ "\\)");
   d3.select('#heading').html(this.heading);
 }
@@ -62,15 +59,7 @@ PitchforkModel.prototype.renderEquation = function(){
 /******************************************************************************/
 /* Find roots and it's dependence on K */
 
-PitchforkModel.prototype.findAllRoots = function(){
-
-  /* Tried using try-catch along with nerdamer to fin roots */
-  // this.roots_array = this.roots_exp.nerdamer.map(exp => {
-  //   return this.r_array.map((r,i) => {
-  //     try{ return math.eval(exp.evaluate({ r: r }).toString()); }
-  //     catch(err){ if( undefined_indices.indexOf(i) == -1 ){ undefined_indices.push(i); } }
-  //   })
-  // })
+model.prototype.findAllRoots = function(){
 
   /* Calculating the roots array */
   this.roots_array = this.roots_exp.mathjs.map(exp => {
@@ -122,7 +111,7 @@ PitchforkModel.prototype.findAllRoots = function(){
 /******************************************************************************/
 /* Called when a user changes a parameter */
 
-PitchforkModel.prototype.evaluate = function(){
+model.prototype.evaluate = function(){
   this.phasePlot();
   this.findRoots();
   this.trajectory();
@@ -131,7 +120,7 @@ PitchforkModel.prototype.evaluate = function(){
 /******************************************************************************/
 /* Calculate the phase plot trajectory */
 
-PitchforkModel.prototype.phasePlot = function(){
+model.prototype.phasePlot = function(){
   var x = this.x;
   var r = this.r.value;
   this.dx_by_dt_list = eval(this.exp.numericjs);
@@ -140,37 +129,24 @@ PitchforkModel.prototype.phasePlot = function(){
 /******************************************************************************/
 /* Find roots and their stability */
 
-PitchforkModel.prototype.findRoots = function(){
-  // var r = this.r.value;
-  // this.roots = this.roots_exp.mathjs.map(d => { return d.eval({ r: r }) })
-  //
-  // /* Rounding off very small numbers */
-  // this.roots = this.roots.map(d => { return round(d) })
-  //
-  // var roots_stability_value = this.roots.map(root => {
-  //   return this.diff_exp.mathjs.eval({ x: root, r: this.r.value })
-  // })
-  //
-  // /* Rounding off very small numbers */
-  // roots_stability_value = roots_stability_value.map(d => { return round(d) })
-  //
-  // this.roots_stability = roots_stability_value.map(d => { return stability(d) })
+model.prototype.findRoots = function(){
 
   /* Using the values already calculated */
   var r_index = Math.round( this.r_scale(this.r.value) );
   this.roots = this.roots_array.map(row => { return row[r_index] });
   this.roots_stability = this.roots_stability_array.map(row => { return row[r_index] });
+
 }
 
 /******************************************************************************/
 /* Calculate trajectory of x */
 
-PitchforkModel.prototype.trajectory = function(){
+model.prototype.trajectory = function(){
   this.x_list = []; this.t_list = [];
   this.rungeKuttaMethod();
 }
 
-PitchforkModel.prototype.rungeKuttaMethod = function(){
+model.prototype.rungeKuttaMethod = function(){
   var h = this.h;
   var timeSpan = this.timeSpan;
   var x = null, t = null, k1 = null, k2 = null, k3 = null, k4 = null;
@@ -178,10 +154,10 @@ PitchforkModel.prototype.rungeKuttaMethod = function(){
   this.t_list[0] = 0; this.x_list[0] = this.x0.value;
   for(var i = 0; i < timeSpan/h; i++){
     x = this.x_list[i]; t = this.t_list[i];
-    k1 = this.f(x, t);
-    k2 = this.f(x + 0.5*h*k1, t + 0.5*h);
-    k3 = this.f(x + 0.5*h*k2, t + 0.5*h);
-    k4 = this.f(x + h*k3, t + h);
+    k1 = this.f({ x: x, t: t, r: this.r.value });
+    k2 = this.f({ x: x + 0.5*h*k1, t: t + 0.5*h, r: this.r.value});
+    k3 = this.f({ x: x + 0.5*h*k2, t: t + 0.5*h, r: this.r.value});
+    k4 = this.f({ x: x + h*k3, t: t + h, r: this.r.value});
 
     this.x_list[i+1] = this.x_list[i] + (1/6)*h*(k1 + 2*k2 + 2*k3 + k4);
     this.t_list[i+1] = this.t_list[i] + h;
@@ -190,7 +166,7 @@ PitchforkModel.prototype.rungeKuttaMethod = function(){
 
 /******************************************************************************/
 
-PitchforkModel.prototype.createSliders = function(){
+model.prototype.createSliders = function(){
   d3.select('#sliders_div_1').selectAll('.slider_g').remove();
   var model = this;
 
@@ -211,7 +187,7 @@ PitchforkModel.prototype.createSliders = function(){
 
 /******************************************************************************/
 
-PitchforkModel.prototype.updateSliders = function(){
+model.prototype.updateSliders = function(){
   this.slider_r.text.html('r = ' + this.r.value.toFixed(1));
   this.slider_x0.text.html('x<sub>0</sub> = ' + this.x0.value.toFixed(1));
 }
@@ -221,7 +197,7 @@ PitchforkModel.prototype.updateSliders = function(){
 // var colors = ['#DB4052', '#FF7F0E', '#1F77B4', '#2CA02C'];
 var colors = { velocity_locus: '#FF7F0E', trajectory: '#1F77B4', stable: '#2CA02C', unstable: '#DB4052' }
 
-PitchforkModel.prototype.createGraph = function(){
+model.prototype.createGraph = function(){
 
   /****************************************************************************/
   /* Chart 1 */
@@ -329,7 +305,7 @@ PitchforkModel.prototype.createGraph = function(){
 
 /******************************************************************************/
 
-PitchforkModel.prototype.updateGraph = function(){
+model.prototype.updateGraph = function(){
 
   /****************************************************************************/
   // Phase plot

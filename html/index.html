@@ -28,17 +28,14 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <script src="../js/parser.js"></script>
-<script src="../js/logisticModel.js"></script>
-<script src="../js/parabola.js"></script>
-<script src="../js/transcritical.js"></script>
-<script src="../js/pitchfork.js"></script>
+<script src="../js/model.js"></script>
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 <link rel="stylesheet" href="../css/style.css">
 
 <body>
   <div class='container-fluid text-center'>
-    <h5 id='heading' class='pt-2'></h5>
+    <h5 id='heading' class='pt-3'></h5>
     <!-- <div class='pt-2' id="equation_pane"></div> -->
 
     <div class='row'>
@@ -50,18 +47,14 @@
       <div class='col-md-6'> <div id='chart_3'></div> </div>
       <div class='col-md-6'>
         <div class='card'>
-          <div class='card-header'>System</div>
+          <div class='card-header'>System Parameters</div>
           <div class='card-body'>
             <div class='pt-2 pb-4' id="equation_pane"></div>
             <div id='sliders_div_1'></div>
             <!-- Dropdown -->
             <div class='dropdown pt-4'>
               <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Select the system </button>
-               <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                 <a class="dropdown-item system" data="0" href="#">Logistic Model</a>
-                 <a class="dropdown-item system" data="1" href="#">Saddle Node Bifurcation Model</a>
-                 <a class="dropdown-item system" data="2" href="#">Transcritical-bifurcation Model</a>
-                 <a class="dropdown-item system" data="3" href="#">Pitchfork-bifurcation Model</a>
+               <div id='model-dropdown' class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                </div>
             </div>
             <!-- Dropdown -->

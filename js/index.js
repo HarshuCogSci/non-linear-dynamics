@@ -11,9 +11,8 @@ var line = d3.line()
     .x(function(d) { return (d.x); })
     .y(function(d) { return (d.y); });
 
-var obj_array = [];
 var obj = null;
-var obj_index = 3;
+var model_index = 0;
 
 var threshold = 0.00001;
 function round(d){
@@ -30,22 +29,34 @@ function stability(d){
   else { return 'none' }
 }
 
+var model_array = [
+  { heading: 'Saddle-Node Bifurcation', exp: 'r + x^2', func: function(obj){ return obj.r + Math.pow(obj.x, 2) } },
+  { heading: 'Transcritical Bifurcation', exp: 'r*x - x^2', func: function(obj){ return obj.r*obj.x - Math.pow(obj.x, 2) } },
+  { heading: 'Supercritical Pitchfork Bifurcation', exp: 'r*x - x^3', func: function(obj){ return obj.r*obj.x - Math.pow(obj.x, 3) } },
+  { heading: 'Subcritical Pitchfork Bifurcation', exp: 'r*x + x^3', func: function(obj){ return obj.r*obj.x + Math.pow(obj.x, 3) } },
+]
+
 /***************************************************************************/
 // Setup function
 
 function setup(){
-  obj_array.push(LogisiticModel);
-  obj_array.push(ParabolaModel);
-  obj_array.push(TranscriticalModel);
-  obj_array.push(PitchforkModel);
+  model_array.forEach((d,i) => {
+    d3.select('#model-dropdown').append('a')
+      .attrs({ class: 'dropdown-item system', data: i, href: '#' })
+      .html(d.heading);
+  })
 }
 
 /***************************************************************************/
 // Create function
 
 function create(){
-  // obj = new LogisiticModel();
-  obj = new obj_array[obj_index]();
+  var val = model_array[model_index];
+  obj = new model();
+
+  obj.exp.string = val.exp;
+  obj.heading = val.heading;
+  obj.f = val.func;
 
   obj.createSliders();
 
@@ -78,6 +89,6 @@ function update(){
 function changeSystem_events(){
   d3.selectAll('.system').on('click', function(){
     var index = parseInt( d3.select(this).attr('data') );
-    if(index != obj_index){ obj_index = index; create(); }
+    if(index != model_index){ model_index = index; create(); }
   })
 }
