@@ -17,7 +17,8 @@ function PitchforkModel(){
   this.roots = null;
   this.roots_stability = null;
 
-  this.r_array = d3.range(this.r.min, this.r.max, this.r.step);
+  this.r_array = d3.range(this.r.min, this.r.max+this.r.step, this.r.step);
+  this.r_scale = d3.scaleLinear().domain([this.r.min, this.r.max]).range([0, this.r_array.length-1]);
   this.roots_array = [];
   this.roots_stability_array = [];
 
@@ -42,6 +43,7 @@ PitchforkModel.prototype.parse = function(){
   this.roots_exp.string = this.roots_exp.nerdamer.map(d => { return d.toString() })
   this.roots_exp.numericjs = this.roots_exp.string.map(d => { return convert_to_numericjs_exp(d) })
   this.roots_exp.mathjs = this.roots_exp.string.map(d => { return math.parse(d) })
+  this.num_roots = this.roots_exp.nerdamer.length;
 
   this.diff_exp.mathjs = math.derivative(this.exp.string, 'x');
   this.diff_exp.string = this.diff_exp.mathjs.toString();
@@ -62,8 +64,33 @@ PitchforkModel.prototype.renderEquation = function(){
 
 PitchforkModel.prototype.findAllRoots = function(){
 
+  /* Tried using try-catch along with nerdamer to fin roots */
+  // this.roots_array = this.roots_exp.nerdamer.map(exp => {
+  //   return this.r_array.map((r,i) => {
+  //     try{ return math.eval(exp.evaluate({ r: r }).toString()); }
+  //     catch(err){ if( undefined_indices.indexOf(i) == -1 ){ undefined_indices.push(i); } }
+  //   })
+  // })
+
+  /* Calculating the roots array */
   this.roots_array = this.roots_exp.mathjs.map(exp => {
     return this.r_array.map(r => { return exp.eval({ r: r }) })
+  })
+
+  var undefined_indices = [];
+  this.roots_array[0].forEach((d,i) => {
+    if(isNaN(d) && d.re == undefined){ undefined_indices.push(i) }
+  })
+
+  undefined_indices.forEach(index => {
+    var r = this.r_array[index];
+    var exp_subs = this.exp.nerdamer.evaluate({ r: r });
+    var sol = exp_subs.solveFor('x');
+    if(sol.length != this.num_roots){
+      for(var j = 0; j < this.num_roots; j++){ this.roots_array[j][index] = math.eval(sol[0].toString()); }
+    } else{
+      for(var j = 0; j < this.num_roots; j++){ this.roots_array[j][index] = math.eval(sol[j].toString()); }
+    }
   })
 
   /* Rounding off very small numbers */
@@ -114,21 +141,25 @@ PitchforkModel.prototype.phasePlot = function(){
 /* Find roots and their stability */
 
 PitchforkModel.prototype.findRoots = function(){
-  var r = this.r.value;
-  this.roots = this.roots_exp.mathjs.map(d => { return d.eval({ r: r }) })
+  // var r = this.r.value;
+  // this.roots = this.roots_exp.mathjs.map(d => { return d.eval({ r: r }) })
+  //
+  // /* Rounding off very small numbers */
+  // this.roots = this.roots.map(d => { return round(d) })
+  //
+  // var roots_stability_value = this.roots.map(root => {
+  //   return this.diff_exp.mathjs.eval({ x: root, r: this.r.value })
+  // })
+  //
+  // /* Rounding off very small numbers */
+  // roots_stability_value = roots_stability_value.map(d => { return round(d) })
+  //
+  // this.roots_stability = roots_stability_value.map(d => { return stability(d) })
 
-  /* Rounding off very small numbers */
-  this.roots = this.roots.map(d => { return round(d) })
-
-  var roots_stability_value = this.roots.map(root => {
-    return this.diff_exp.mathjs.eval({ x: root, r: this.r.value })
-  })
-
-  /* Rounding off very small numbers */
-  roots_stability_value = roots_stability_value.map(d => { return round(d) })
-
-  this.roots_stability = roots_stability_value.map(d => { return stability(d) })
-
+  /* Using the values already calculated */
+  var r_index = Math.round( this.r_scale(this.r.value) );
+  this.roots = this.roots_array.map(row => { return row[r_index] });
+  this.roots_stability = this.roots_stability_array.map(row => { return row[r_index] });
 }
 
 /******************************************************************************/
@@ -250,8 +281,6 @@ PitchforkModel.prototype.createGraph = function(){
 
   /****************************************************************************/
   /* Chart 3 */
-
-  this.num_roots = this.roots.length;
 
   var stable_roots_locus = this.roots_array.map((row,i) => {
     return row.map((root,j) => {
