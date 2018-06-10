@@ -19,6 +19,10 @@ function model(){
   this.roots_array = [];
   this.roots_stability_array = [];
 
+  this.root_locus_by_user = true;
+  this.r_range = { min: this.r.value, max: this.r.value };
+  this.r_range_index = { min: Math.round(this.r_scale(this.r.value)), max: Math.round(this.r_scale(this.r.value)) };
+
   this.dx_by_dt_list = null;
   this.x_list = [];
   this.t_list = [];
@@ -173,7 +177,12 @@ model.prototype.createSliders = function(){
   this.slider_r = {};
   this.slider_r.span = d3.select('#sliders_div_1').append('div').attrs({ 'class': 'slider_g py-1' });
   this.slider_r.input = this.slider_r.span.append('input').attrs(this.r).attrs({ type: 'range', 'class': 'slider' }).on('input', function(){
-    model.r.value = parseFloat(this.value); update();
+    model.r.value = parseFloat(this.value);
+    if(model.r.value < model.r_range.min){ model.r_range.min = model.r.value; }
+    if(model.r.value > model.r_range.max){ model.r_range.max = model.r.value; }
+    model.r_range_index.min = Math.round(model.r_scale(model.r_range.min));
+    model.r_range_index.max = Math.round(model.r_scale(model.r_range.max));
+    update();
   })
   this.slider_r.text = this.slider_r.span.append('span').attrs({ class: 'pl-2 text_align range-slider__value' });
 
@@ -267,24 +276,24 @@ model.prototype.createGraph = function(){
   /****************************************************************************/
   /* Chart 3 */
 
-  var stable_roots_locus = this.roots_array.map((row,i) => {
+  this.stable_roots_locus = this.roots_array.map((row,i) => {
     return row.map((root,j) => {
       if((this.roots_stability_array[i][j] == 'stable' || this.roots_stability_array[i][j] == 'neutral') && typeof(root) == 'number'){ return root } else { return null }
     })
   })
 
-  var unstable_roots_locus = this.roots_array.map((row,i) => {
+  this.unstable_roots_locus = this.roots_array.map((row,i) => {
     return row.map((root,j) => {
       if((this.roots_stability_array[i][j] == 'unstable' || this.roots_stability_array[i][j] == 'neutral') && typeof(root) == 'number'){ return root } else { return null }
     })
   })
 
-  var stable_traces = stable_roots_locus.map((locus,i) => {
-    return { x: this.r_array, y: locus, mode: 'lines', name: 'Stable', line: { dash: 'solid', color: colors.stable }, showlegend: i == 0 ? true : false }
+  var stable_traces = this.stable_roots_locus.map((locus,i) => {
+    return { x: this.r_array.map(d => { return d }), y: locus.map(d => { return d }), mode: 'lines', name: 'Stable', line: { dash: 'solid', color: colors.stable }, showlegend: i == 0 ? true : false }
   })
 
-  var unstable_traces = unstable_roots_locus.map((locus,i) => {
-    return { x: this.r_array, y: locus, mode: 'lines', name: 'Unstable', line: { dash: 'dot', color: colors.unstable }, showlegend: i == 0 ? true : false }
+  var unstable_traces = this.unstable_roots_locus.map((locus,i) => {
+    return { x: this.r_array.map(d => { return d }), y: locus.map(d => { return d }), mode: 'lines', name: 'Unstable', line: { dash: 'dot', color: colors.unstable }, showlegend: i == 0 ? true : false }
   })
 
   var traces = [];
@@ -314,9 +323,21 @@ model.prototype.createGraph = function(){
 
   traces.push(current_stable_nodes, current_unstable_nodes, current_neutral_nodes);
 
-  var layout = { title: 'Nodes', xaxis: { title: 'r →', zeroline: true }, yaxis: { title: 'Roots →', zeroline: false } };
-  Plotly.newPlot('chart_3', traces, layout, { staticPlot: true });
+  var layout = {
+    title: 'Nodes',
+    xaxis: { title: 'r →', zeroline: true, range: d3.extent(this.r_array) },
+    yaxis: { title: 'Roots →', zeroline: false, range: d3.extent( find_extent(this.stable_roots_locus).concat(find_extent(this.unstable_roots_locus)) ) }
+  };
 
+  Plotly.newPlot('chart_3', traces, layout, { staticPlot: true });
+}
+
+function find_extent(array){
+  var concat_array = [];
+  array.forEach(row => {
+    row.forEach(d => { concat_array.push(d); })
+  });
+  return d3.extent(concat_array)
 }
 
 /******************************************************************************/
@@ -366,6 +387,16 @@ model.prototype.updateGraph = function(){
 
   var chart_3 = document.getElementById('chart_3').data;
   var index = 2*this.num_roots;
+
+  for(var i = 0; i < this.num_roots; i++){
+    chart_3[i].x = this.r_array.slice(this.r_range_index.min, this.r_range_index.max+1);
+    chart_3[i].y = this.stable_roots_locus[i].slice(this.r_range_index.min, this.r_range_index.max+1);
+  }
+
+  for(var i = 0; i < this.num_roots; i++){
+    chart_3[i+this.num_roots].x = this.r_array.slice(this.r_range_index.min, this.r_range_index.max+1);
+    chart_3[i+this.num_roots].y = this.unstable_roots_locus[i].slice(this.r_range_index.min, this.r_range_index.max+1);
+  }
 
   chart_3[index].x = this.roots_stability.map((d,i) => { if(d == 'stable'){ return this.r.value } });
   chart_3[index].y = this.roots_stability.map((d,i) => { if(d == 'stable'){ return this.roots[i] } });
